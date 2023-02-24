@@ -24,8 +24,27 @@ Following should be included for a production system but its not in the scope of
 * Get the highest ranked job in the DB and submit it to QC
 * When QC is done, at a later time, listen to QC and store result/update in DB with the job descriptor
 
-## Test
+## Installation
+We are relying on virtualenv to keep things tidy and isolated from system installed python versions.
+```
+sudo apt install virtualenv python3 python3-pip
+``` 
+Once necessary system-wide dependencies are in place, clone the code and setup the virtualenv. Once virtualenv is ready, install the app related dependencies.
+```
+git clone https://github.com/egyilmaz/qc_job.git
+cd qc_job
+virtualenv -p python3 ./venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+### Running the tests:
+Type `pytest` at the root level of the project
+```
+cd qc_job
+pytest
+```
+
+## BDD Tests
 I will try `behave` to implement BDD tests if time permits.
-There will be unit tests with `pytest`
 
 
