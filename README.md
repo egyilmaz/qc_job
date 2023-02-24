@@ -1,2 +1,5 @@
-# qc_job
-A web service for submitting quantum computer jobs
+# Track QC Job
+A web service for submitting jobs to a quantum computer
+
+## General Design
+### 
