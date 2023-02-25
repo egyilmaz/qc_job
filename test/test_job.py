@@ -46,12 +46,12 @@ def test_runtime_selector():
     assert isinstance(result, JobResult)
     assert result.result_type == JobResultType.SUCCESS
 
-def test_backend_service():
-    service = BackendService()
+def test_backend_service_success():
     job = JobFactory.Create(OperationType.ROTATION,'X(90),Y(90), X(180)')
     runtime = RuntimeSelector.select(RuntimeType.ECHO)
+    service = BackendService(runtime)
 
-    resp = service.submit(job, runtime)
+    resp = service.submit(job)
     assert resp.status == ServiceResponseType.SUBMITTED
     job_id = resp.data['job_ident']
 
@@ -63,3 +63,9 @@ def test_backend_service():
     resp = service.query(job_id)
     assert resp.status == ServiceResponseType.COMPLETED
     assert resp.data == {"pi":3.141519} 
+
+def test_backend_service_query_failed():
+    runtime = RuntimeSelector.select(RuntimeType.ECHO)
+    service = BackendService(runtime)
+    resp = service.query("no such job exists")
+    assert resp.status == ServiceResponseType.JOB_NOT_FOUND
