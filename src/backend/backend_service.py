@@ -32,6 +32,7 @@ class BackendService:
         self._jobs = [(job, ServiceResponse(ServiceResponseType.RUNNING)) for (job, _) in self._jobs]
         
         for job, _ in self._jobs:
-            self._runtime.execute(job)
+            #TODO: job execution result is not used, utilise it to set the job state at the end of execution
+            resp = self._runtime.execute(job) #TODO: implement Future/Promise to simulate long duration job executions.
 
         self._jobs = [(job, ServiceResponse(ServiceResponseType.COMPLETED, {"pi":3.141519})) for (job, _) in self._jobs]
