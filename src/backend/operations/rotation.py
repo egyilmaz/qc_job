@@ -20,6 +20,9 @@ class Rotation(Operation):
     def rotations(self):
         return self._rotations
     
+    def run(self):
+        print(f'running rotation axis:{self._axis}, angle{self._angle}')
+    
     @classmethod
     def Create(self, job_str):
         if not job_str:

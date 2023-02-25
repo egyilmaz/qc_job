@@ -1,9 +1,11 @@
 import pytest
 from src.backend.exceptions import EmptyJob, InvalidAxis, InvalidDelimeter, InvalidToken
-from src.backend.job_factory import JobFactory
+from src.backend.job_factory import JobFactory, OperationType
+from src.backend.runtime_selector import RuntimeSelector, RuntimeType
+from src.backend.job_result import JobResult, JobResultType
 
 def test_job_ctor_success():
-    job = JobFactory.create("rotation", 'X(90), Y(180), X(90)')
+    job = JobFactory.Create(OperationType.ROTATION, 'X(90), Y(180), X(90)')
     rotations = job.operations
     # Successful job creation should have defined number of operations and a job ident
     assert job.ident != None
@@ -17,21 +19,28 @@ def test_job_ctor_success():
 
 def test_job_ctor_empty_str():
     with pytest.raises(EmptyJob) as e_info:
-        job = JobFactory.create("rotation", '')
+        job = JobFactory.Create(OperationType.ROTATION, '')
 
     with pytest.raises(EmptyJob) as e_info:
-        job = JobFactory.create("rotation", None)
+        job = JobFactory.Create(OperationType.ROTATION, None)
 
 def test_job_ctor_invalid_axis():
     with pytest.raises(InvalidAxis) as e_info:
-        job = JobFactory.create("rotation", 'Z(90), X(90)')
+        job = JobFactory.Create(OperationType.ROTATION, 'Z(90), X(90)')
 
 def test_job_ctor_invalid_delimeter():
     with pytest.raises(InvalidDelimeter) as e_info:
-        job = JobFactory.create("rotation",'X(90) Y(90)')
+        job = JobFactory.Create(OperationType.ROTATION,'X(90) Y(90)')
 
 def test_job_ctor_single_delimeter():
     with pytest.raises(InvalidToken) as e_info:
-        job = JobFactory.create("rotation",'X(90) Y(90), X(180)')
+        job = JobFactory.Create(OperationType.ROTATION,'X(90) Y(90), X(180)')
 
-#TODO: There are might be more errornous strings, parsing should be checked further
+#TODO: There might be more errornous string cases, parsing should be checked further
+
+def test_runtime_selector():
+    job = JobFactory.Create(OperationType.ROTATION,'X(90),Y(90), X(180)')
+    runtime = RuntimeSelector.select(RuntimeType.VERBATIM)
+    result = runtime.execute(job)
+    assert isinstance(result, JobResult)
+    assert result.result_type == JobResultType.SUCCESS
