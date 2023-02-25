@@ -1,27 +1,18 @@
-from .exceptions import EmptyJob, InvalidDelimeter
-from .rotations import Rotations
-from parse import parse
+import uuid
+
+"""
+    Job class provides a unique uuid for each job, which is a set of operations.
+"""
 
 class Job:
-    def __init__(self, job_str) -> None:
-        if not job_str:
-            raise EmptyJob('EmptyJob not allowed')
-        self._rotations = self._createJob(job_str)
+    def __init__(self, operations) -> None:
+        self._ident = uuid.uuid4()
+        self._operations = operations
+
+    @property
+    def operations(self):
+        return self._operations
     
-    def _createJob(self, job_str):
-        if ',' in job_str:
-            tokens = job_str.split(',')
-        else:
-            raise InvalidDelimeter('Missing comma as delimeter in job string')
-            
-        #TODO: replace this logic with regex
-        rotations=[]
-        for token in tokens:
-            token = token.strip()
-            x_or_y = token[0]
-            rotation = parse('({:d})', token[1:])[0]
-            rotations.append(Rotations(x_or_y, rotation))
-        return rotations
-    
-    def rotations(self):
-        return self._rotations
+    @property
+    def ident(self):
+        return self._ident
