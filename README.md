@@ -2,19 +2,14 @@
 A web service for submitting jobs to a quantum computer
 
 ## General Design
-Following should be included for a production system but its not in the scope of this test.
-
-1. User authentication, authorization
-2. Encryption of payload via pre-shared (out-of-band) secret
-3. Get the services running in K8s, with a load_balancer + ingres at the front
+Please refer to the `design` folder for my initial understanding of how the components will look like. I havent implemented most of it, as it would deviate from the description of the task
 
 ### Submitting a Job
-* A POST request containing the payload
+* A POST request containing the payload (JobStr + runtime)
 * payload is verified upon receipt, then compiled
 * any error is returned as response
-* successful compilation will register the content into DB for backend to fetch at a convenient time. Return a job descriptor to the user as successful response
-* Possibly rank the job, using requester's customer_id
-
+* successful compilation will register the content into DB for backend to fetch at a convenient time. 
+    * Return a job descriptor to the user if submission is successful
 
 ### Requesting the state of a Job
 * A GET request with job descriptor
@@ -45,6 +40,15 @@ pytest
 ```
 
 ## BDD Tests
-I will try `behave` to implement BDD tests if time permits.
+I will try using `behave` to implement BDD tests if time permits.
 
+## Thoughts on "What else we need for a minimal viable product and beyond"
+Following should be included for a production system but its not in the scope of this test.
 
+1. User authentication, authorization
+2. Encryption of payload via pre-shared (out-of-band) secret
+3. Get the services running in K8s, with a load_balancer + ingres at the front
+4. Rank the submitted jobs using requesting customer's privileges
+5. Logging implementation for internal troubleshooting
+6. Mocking in unit tests, for better code-coverage
+7. BDD tests for end-to-end functionality check.

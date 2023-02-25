@@ -3,6 +3,7 @@ from src.backend.exceptions import EmptyJob, InvalidAxis, InvalidDelimeter, Inva
 from src.backend.job_factory import JobFactory, OperationType
 from src.backend.runtime_selector import RuntimeSelector, RuntimeType
 from src.backend.job_result import JobResult, JobResultType
+from src.backend.backend_service import BackendService, ServiceResponseType
 
 def test_job_ctor_success():
     job = JobFactory.Create(OperationType.ROTATION, 'X(90), Y(180), X(90)')
@@ -44,3 +45,21 @@ def test_runtime_selector():
     result = runtime.execute(job)
     assert isinstance(result, JobResult)
     assert result.result_type == JobResultType.SUCCESS
+
+def test_backend_service():
+    service = BackendService()
+    job = JobFactory.Create(OperationType.ROTATION,'X(90),Y(90), X(180)')
+    runtime = RuntimeSelector.select(RuntimeType.ECHO)
+
+    resp = service.submit(job, runtime)
+    assert resp.status == ServiceResponseType.SUBMITTED
+    job_id = resp.data['job_ident']
+
+    resp = service.query(job_id)
+    assert resp.status == ServiceResponseType.WAITING
+
+    service.run()
+
+    resp = service.query(job_id)
+    assert resp.status == ServiceResponseType.COMPLETED
+    assert resp.data == {"pi":3.141519} 

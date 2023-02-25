@@ -1,6 +1,7 @@
 from src.backend.job_result import JobResult, JobResultType
+from .runtime import Runtime
 
-class RuntimeVerbatim:
+class RuntimeVerbatim(Runtime):
     def __init__(self) -> None:
         pass
 
