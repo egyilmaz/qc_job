@@ -6,8 +6,9 @@ class JobResultType(Enum):
 
 
 class JobResult:
-    def __init__(self, result_type:JobResultType, msg:str=None) -> None:
+    def __init__(self, result_type:JobResultType, data:dict, msg:str=None) -> None:
         self._result_type = result_type
+        self._data = data
         self._msg = msg
 
     @property
@@ -17,3 +18,7 @@ class JobResult:
     @property
     def msg(self):
         return self._msg
+    
+    @property
+    def data(self):
+        return self._data

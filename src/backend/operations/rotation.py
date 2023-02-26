@@ -1,5 +1,5 @@
-from src.backend.exceptions import EmptyJob, InvalidDelimeter, InvalidAxis, InvalidToken
 from parse import parse
+from ..exceptions import EmptyJob, InvalidDelimeter, InvalidAxis, InvalidToken
 from .operation import Operation
 
 class Rotation(Operation):    
