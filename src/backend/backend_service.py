@@ -1,7 +1,6 @@
 import time
 from enum import Enum
 from queue import Empty, Queue
-from multiprocessing import Process
 from threading import Thread, Lock
 
 from .job import Job, JobState
@@ -16,7 +15,10 @@ class ServiceResponseType(Enum):
     FAILED_DURING_EXECUTION = 6
     JOB_NOT_FOUND = 7
 
-def qc_thread(runtime:Runtime, qc_in:Queue, qc_out:Queue):
+"""
+This thread is just a place holder for Quantum Computer service
+"""
+def qc_thread_func(runtime:Runtime, qc_in:Queue, qc_out:Queue):
     print('qc_thread started')
     #TODO: exit condition must be implemented for this thread
     while True:
@@ -33,26 +35,30 @@ def qc_thread(runtime:Runtime, qc_in:Queue, qc_out:Queue):
             print('qc_thread: input queue empty, sleeping')
             time.sleep(1)
     
-qc_in = Queue(10)
-qc_out = Queue(10)
+"""
+In a production setup, the qc_thread_func would be replaced with a service that serves jobs to Quantum Computer
+"""
 
-"""
-Submit: will update jobs list and then put the job into Quantum Computer's queue
-Query : will query the job list and return the state
-"""
 class BackendService:
     def __init__(self, runtime:Runtime) -> None:
+        # the job list "jobs" will be a DB in a production setting, hence making lock() obsolete
         self._jobs=[]
         self._runtime = runtime
-        self._lock = Lock()
-        self._qc = None
+        self._lock = Lock() # query/submit/run can be called from different threads/tasks, hence protect the job list
+        self._qcq_in = Queue(10)
+        self._qcq_out = Queue(10)
+        self._qc_t = None
 
     def start_qc_thread(self):
-        global qc_in, qc_out
-        self._qc = Thread(target=qc_thread, args=(self._runtime, qc_in, qc_out,))
-        self._qc.setDaemon(True) # detached thread
-        self._qc.start()
+        self._qc_t = Thread(target=qc_thread_func, args=(self._runtime, self._qcq_in, self._qcq_out,))
+        self._qc_t.setDaemon(True) # detached thread
+        self._qc_t.start()
 
+    """
+    submit() method will send the jobs that are in WAITING state to the Quantum Computer and update
+             the state of the job accordingly.
+             Returns the job_id and submission state.
+    """
     def submit(self, job:Job):
         self._lock.acquire()  # exclusive access to jobs list
         #TODO: What about the failure to submit and relevant response
@@ -62,6 +68,10 @@ class BackendService:
         self._lock.release()
         return resp
 
+    """
+    query() method will check the job list for given job ident
+            Returns the job state
+    """
     def query(self, job_id):
         self._lock.acquire() # exclusive access to jobs list
         # start by assuming job_id not found in jobs list
@@ -73,18 +83,22 @@ class BackendService:
         self._lock.release()
         return resp
     
+    """
+    run() method will submit the waiting jobs to Quantum Computer
+          and then collect the responses. Job list is updated upon 
+          submission and when a response is retrieved
+    """
     def run(self):
-        global qc_out, qc_in
         self._lock.acquire() # exclusive access to jobs list
         for job in self._jobs:
             if job.state == JobState.WAITING:
                 print('service: found job waiting, submitting to qc')
                 job.state = JobState.SUBMITTED
-                qc_in.put(job)
+                self._qcq_in.put(job)
         self._lock.release()
 
         try:
-            resp = qc_out.get()
+            resp = self._qcq_out.get()
             self._lock.acquire() # exclusive access to jobs list
             for job in self._jobs:
                 if resp.data['job_id'] == job.ident:   #TODO pass in job in response, job_id, job_ident keys are getting entangled.

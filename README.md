@@ -42,6 +42,39 @@ pytest
 ## BDD Tests
 I will try using `behave` to implement BDD tests if time permits.
 
+## Example usage of backend service
+The `submit()` and `query()` are the two interfaces to interact with the Quantum computer. The `BackendService` starts a thread which simulates the Quantum Computer. The backend service keeps a list of jobs and updates their state. In a production setting, a DB will replace the job list kept in `BackendService`
+```
+from backend.job import JobState
+from backend.runtime_selector import RuntimeSelector, RuntimeType
+from backend.backend_service import BackendService, ServiceResponseType
+from backend.job_factory import JobFactory, OperationType
+
+def main():
+    job = JobFactory.Create(OperationType.ROTATION,'X(90),Y(90), X(180)')
+    runtime = RuntimeSelector.select(RuntimeType.VERBATIM)
+    service = BackendService(runtime)
+    service.start_qc_thread()
+
+    resp = service.submit(job)
+    assert resp.status == ServiceResponseType.SUBMIT_SUCCESS
+    job_id = resp.data['job_ident']
+
+    resp = service.query(job_id)
+    assert resp.status == ServiceResponseType.QUERY_SUCCESS
+    assert resp.data['job'].state == JobState.WAITING
+
+    service.run()
+
+    resp = service.query(job_id)
+    assert resp.status == ServiceResponseType.QUERY_SUCCESS
+    assert resp.data['job'].state == JobState.COMPLETED
+
+if __name__ == '__main__':
+    main()
+```
+
+
 ## Thoughts on "What else we need for a minimal viable product and beyond"
 Following should be included for a production system but its not in the scope of this test.
 

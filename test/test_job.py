@@ -55,12 +55,13 @@ def test_backend_service_success():
 
     resp = service.submit(job)
     assert resp.status == ServiceResponseType.SUBMIT_SUCCESS
-    job_id = resp.data['job_ident']
+    job_id = resp.data['job_ident']  #TODO: response data dictionary with keys, becoming confusing, fix this.
 
     resp = service.query(job_id)
     assert resp.status == ServiceResponseType.QUERY_SUCCESS
     assert resp.data['job'].state == JobState.WAITING
 
+    # Start submitting jobs in WAITING state to Quantum Computer, and fetch completed jobs
     service.run()
 
     resp = service.query(job_id)
